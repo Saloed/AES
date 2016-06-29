@@ -212,22 +212,41 @@ inline int Cryptor::process()
 
 	uint64 size = _in_file_size;
 
+#ifdef PART_FILE_PROCESSING
+
 	if (size < MEGABYTE)
 	{
+#ifdef _DEBUG
+		*_err << "size < MEGA | " << size << std::endl;
+#endif
 		process_block(size);
 	}
 	else
 	{
 		uint32 full_blocks = size / MEGABYTE;
 		uint32 remainder = size % MEGABYTE;
+
+#ifdef _DEBUG
+		*_err << "size > MEGA | " << size << std::endl<<"full blocks | "<<full_blocks<<"  remaind | "<<remainder<< std::endl;
+#endif
+
 		for (uint32 i = 0; i < full_blocks; i++)
 		{
 			int err = process_block(MEGABYTE);
-			if (err)return err;
+			if (err<=0)return err;
 		}
 		int err = process_block(remainder);
-		if (err)return err;
+		if (err<=0)return err;
+
 	}
+#else
+
+#ifdef _DEBUG
+	*_err << "size | " << size << std::endl;
+#endif
+	process_block(size);
+#endif
+	_out_file.flush();
 	return 0;
 }
 
@@ -263,7 +282,7 @@ inline uint32 Cryptor::process_block(unsigned size)
 		out_size = core->decrypt_data(input, size, out);
 
 	_out_file.write(reinterpret_cast<char*>(out), out_size);
-	_out_file.flush();
+	//_out_file.flush();
 
 #ifdef _DEBUG
 	*_err << "succes write to file | size " << out_size << '\n';
