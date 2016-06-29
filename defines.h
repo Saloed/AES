@@ -3,9 +3,9 @@
 
 #define NULL (0)
 
-#define uint64 unsigned long long
-#define uint32 unsigned int
-#define byte unsigned char
+typedef unsigned long long uint64;
+typedef unsigned int       uint32;
+typedef unsigned char	   byte;
 
 #define MAX_KEY_COLUMNS (8)
 #define MAX_ROUNDS      (14)
@@ -14,6 +14,7 @@
 #define CAST32(x) ((uint32*)(x)) 
 #define CAST(type,x) (static_cast<type>(x))
 
+#define MEGABYTE (1<<20)
 
 enum OPERATION
 {

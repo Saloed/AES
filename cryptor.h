@@ -28,6 +28,9 @@ public:
 	int process();
 
 private:
+
+	uint32 process_block(unsigned size);
+
 	char* _in_fname;
 	char* _out_fname;
 	SizedArray<byte> _key;
@@ -126,6 +129,7 @@ inline int Cryptor::init()
 #endif // DEBUG
 
 
+
 	if (_init_vector.isEmpty())
 	{
 		//_init_vector.set(new byte[MAX_IV_SIZE], MAX_IV_SIZE);
@@ -162,7 +166,7 @@ inline int Cryptor::init()
 
 	}
 
-	if(_key_type==K24B)
+	if (_key_type == K24B)
 	{
 		SHA256 hasher;
 		_key = hasher.get_hash(_key);
@@ -172,6 +176,7 @@ inline int Cryptor::init()
 			*_err << std::hex << static_cast<int>(_key[i]);
 		*_err << '\n';
 #endif // _DEBUG
+
 	}
 
 	if (_key_type == K32B)
@@ -207,7 +212,27 @@ inline int Cryptor::process()
 
 	uint64 size = _in_file_size;
 
+	if (size < MEGABYTE)
+	{
+		process_block(size);
+	}
+	else
+	{
+		uint32 full_blocks = size / MEGABYTE;
+		uint32 remainder = size % MEGABYTE;
+		for (uint32 i = 0; i < full_blocks; i++)
+		{
+			int err = process_block(MEGABYTE);
+			if (err)return err;
+		}
+		int err = process_block(remainder);
+		if (err)return err;
+	}
+	return 0;
+}
 
+inline uint32 Cryptor::process_block(unsigned size)
+{
 	byte* input = new byte[size];
 	byte* out = new byte[size + 16];
 
@@ -225,6 +250,12 @@ inline int Cryptor::process()
 #endif // DEBUG
 
 
+	if (!_in_file)
+	{
+		*_err << "error occured durind reading\n";
+		return -1;
+	}
+
 	int out_size;
 	if (_op == ENCRYPT)
 		out_size = core->encrypt_data(input, size, out);
@@ -239,9 +270,15 @@ inline int Cryptor::process()
 #endif // DEBUG
 
 
+	if (!_out_file)
+	{
+		*_err << "error occured durind writing\n";
+		return -2;
+	}
+
 	delete[] input;
 	delete[] out;
 
-	return 0;
+	return out_size;
 }
 

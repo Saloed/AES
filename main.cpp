@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 	/*initialize cryptor*/
 	Cryptor crypt(input_filename, output_filename, op, key, key_type, mode, init_vector, std::cerr);
 	int err = crypt.init();
-	if (err != 0) return err;
+	if (err) return err;
 
 #ifdef _DEBUG
 	std::cerr << "crypt system init complete" << endl;
