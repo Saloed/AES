@@ -29,7 +29,7 @@ public:
 
 private:
 
-	uint32 process_block(unsigned size);
+	uint32 process_block(uint32 size);
 
 	char* _in_fname;
 	char* _out_fname;

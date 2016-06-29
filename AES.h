@@ -22,8 +22,8 @@ public:
 
 #ifdef STRICT_BLOCK
 
-	int encrypt_block(const byte * input, int input_len, byte * out_buffer);
-	int decrypt_block(const byte * input, int input_len, byte * out_buffer);
+	int encrypt_block(const byte* input, int input_len, byte* out_buffer);
+	int decrypt_block(const byte* input, int input_len, byte* out_buffer);
 
 #endif 
 
@@ -502,7 +502,8 @@ inline int AES::decrypt_data(const byte* input, int input_byte_len, byte* out_bu
 
 #ifdef STRICT_BLOCK
 
-inline int AES::encrypt_block(const byte *input, int input_len, byte *out_buffer) {
+inline int AES::encrypt_block(const byte* input, int input_len, byte* out_buffer)
+{
 	int i, block_amount;
 	byte block[16];
 
@@ -523,27 +524,28 @@ inline int AES::encrypt_block(const byte *input, int input_len, byte *out_buffer
 
 	case CBC:
 		for (int j = 0; j < 4; j++)
-			CAST32(block)[j] = CAST32(_init_vector)[j] ^ CAST32(input)[j];
+		CAST32(block)[j] = CAST32(_init_vector)[j] ^ CAST32(input)[j];
 
 		encrypt(block, out_buffer);
 		input += 16;
 		for (i = block_amount - 1; i > 0; i--)
 		{
 			for (int j = 0; j < 4; j++)
-				CAST32(block)[j] = CAST32(out_buffer)[j] ^ CAST32(input)[j];
+			CAST32(block)[j] = CAST32(out_buffer)[j] ^ CAST32(input)[j];
 
 			out_buffer += 16;
 			encrypt(block, out_buffer);
 			input += 16;
 		}
 		break;
-	default:return -1;
+	default: return -1;
 	}
 
 	return 16 * block_amount;
 }
 
-inline int AES::decrypt_block(const byte *input, int input_len, byte *out_buffer) {
+inline int AES::decrypt_block(const byte* input, int input_len, byte* out_buffer)
+{
 	int i, block_amount;
 	byte block[16], iv[4][4];
 
@@ -564,24 +566,28 @@ inline int AES::decrypt_block(const byte *input, int input_len, byte *out_buffer
 
 	case CBC:
 
-		*CAST32(iv[0]) = *CAST32((_init_vector));
-		*CAST32(iv[1]) = *CAST32((_init_vector + 4));
-		*CAST32(iv[2]) = *CAST32((_init_vector + 8));
-		*CAST32(iv[3]) = *CAST32((_init_vector + 12));
+		*CAST32(iv[0]) = *CAST32((_init_vector)) ;
+		*CAST32(iv[1]) = *CAST32((_init_vector + 4)) ;
+		*CAST32(iv[2]) = *CAST32((_init_vector + 8)) ;
+		*CAST32(iv[3]) = *CAST32((_init_vector + 12)) ;
 
 		for (i = block_amount; i > 0; i--)
 		{
 			decrypt(input, block);
-			CAST32(block)[0] ^= *CAST32(iv[0]);
-			CAST32(block)[1] ^= *CAST32(iv[1]);
-			CAST32(block)[2] ^= *CAST32(iv[2]);
-			CAST32(block)[3] ^= *CAST32(iv[3]);
+			CAST32(block)[0] ^= *CAST32(iv[0]) ;
+			CAST32(block)[1] ^= *CAST32(iv[1]) ;
+			CAST32(block)[2] ^= *CAST32(iv[2]) ;
+			CAST32(block)[3] ^= *CAST32(iv[3]) ;
 
 
-			*CAST32(iv[0]) = CAST32(input)[0]; CAST32(out_buffer)[0] = CAST32(block)[0];
-			*CAST32(iv[1]) = CAST32(input)[1]; CAST32(out_buffer)[1] = CAST32(block)[1];
-			*CAST32(iv[2]) = CAST32(input)[2]; CAST32(out_buffer)[2] = CAST32(block)[2];
-			*CAST32(iv[3]) = CAST32(input)[3]; CAST32(out_buffer)[3] = CAST32(block)[3];
+			*CAST32(iv[0]) = CAST32(input)[0];
+			CAST32(out_buffer)[0] = CAST32(block)[0];
+			*CAST32(iv[1]) = CAST32(input)[1];
+			CAST32(out_buffer)[1] = CAST32(block)[1];
+			*CAST32(iv[2]) = CAST32(input)[2];
+			CAST32(out_buffer)[2] = CAST32(block)[2];
+			*CAST32(iv[3]) = CAST32(input)[3];
+			CAST32(out_buffer)[3] = CAST32(block)[3];
 
 			input += 16;
 			out_buffer += 16;
