@@ -67,7 +67,7 @@ inline Cryptor::~Cryptor()
 inline int Cryptor::init()
 {
 #ifdef _DEBUG
-	std::cerr << "input filename | " << _in_fname << "\nout filename | " << _out_fname << std::endl;
+	std::cerr << "input filename | " << _in_fname << "\nout filename | " << ((_out_fname)?_out_fname:"no_name") << std::endl;
 #endif
 	if (_in_fname == NULL)
 	{
