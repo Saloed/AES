@@ -1,12 +1,11 @@
 #pragma once
 #include "defines.h"
-#include <memory>
 
 template<typename T> class SizedArray
 {
 public:
 	T* _arr;
-	uint32 size;
+	uint64 size;
 
 	SizedArray() {
 		_arr = NULL;
@@ -37,19 +36,21 @@ public:
 
 	SizedArray(const SizedArray& other) {
 		size = other.size;
-		_arr = other._arr;
+		_arr = new T[size];
+		std::memcpy(_arr, other._arr, size * sizeof(T));
 	}
 
-	SizedArray &operator=(SizedArray &other) {
+	SizedArray &operator=(const SizedArray &other) {
 		size = other.size;
-		//std::memcpy(_arr, other._arr, size);
-		_arr = other._arr;
+		_arr = new T[size];
+		std::memcpy (_arr, other._arr, size * sizeof(T));
 		return *this;
 	}
 
 	SizedArray &operator=(char* other) {
 		size = strlen(other);
-		_arr = (T*)other;
+		_arr = new T[size];
+		std::memcpy(_arr, other, size);
 		return *this;
 	}
 	T &operator[] (int i) {

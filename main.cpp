@@ -22,8 +22,8 @@ void help() {
 
 int main(int argc, char** argv) {
 
-	SizedArray<char> input_filename;
-	SizedArray<char> output_filename;
+	char* input_filename = NULL;
+	char* output_filename = NULL;
 
 	SizedArray<byte> key;
 	SizedArray<byte> init_vector;
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 
 		case 'm':
 			if (optarg == "ecb" || optarg == "ECB")mode = ECB;
-			else if (optarg == "cbc" || optarg == "CBC")	mode = CBC;
+			else if (optarg == "cbc" || optarg == "CBC")mode = CBC;
 			break;
 
 		case 'i': {init_vector = optarg; } break;
@@ -70,17 +70,17 @@ int main(int argc, char** argv) {
 
 
 #ifdef _DEBUG
-		std::cerr << "Option " << ((c == 1) ? 'I' : (char)c) << " with " << optarg << endl;
+		std::cerr << "Option " << ((c == 1) ? 'I' : static_cast<char>(c)) << " with " << optarg << endl;
 #endif
 
 	}
 
-	if (input_filename.isEmpty()) { cout << "No input file cpecified" << endl; return -1; }
+	if (input_filename==NULL) { cout << "No input file cpecified" << endl; return -1; }
 	if (op == NONE) { cout << "Operation not cpecified" << endl; return -1; }
 	if (key.isEmpty()) { cout << "Key not cpecified" << endl; return -1; }
 
 #ifdef _DEBUG
-	std::cerr << "input data " << input_filename._arr << "\t" << op << "\t" << key._arr << "\t" << endl;
+	std::cerr << "input data " << input_filename << "\t" << op << "\t" << key._arr << "\t" << endl;
 #endif
 
 	/*initialize cryptor*/
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
 	if (err != 0) return err;
 
 #ifdef _DEBUG
-	std::cerr << "crypt system init complete"<< endl;
+	std::cerr << "crypt system init complete" << endl;
 #endif
 
 	/*start crypting*/

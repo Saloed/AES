@@ -11,7 +11,7 @@ struct SHAContext
 {
 	uint64    length;
 	uint32    state[8];
-	uint32    curlen;
+	uint64    curlen;
 	byte      buf[BLOCK_SIZE];
 };
 
@@ -90,7 +90,7 @@ private:
 	SizedArray<byte> hash;
 };
 
-SHA256::SHA256()
+inline SHA256::SHA256()
 {
 	hash = SizedArray<byte>(new byte[SHA256_HASH_SIZE], SHA256_HASH_SIZE);
 	_context.curlen = 0;
@@ -105,16 +105,16 @@ SHA256::SHA256()
 	_context.state[7] = 0x5BE0CD19UL;
 }
 
-SHA256::~SHA256()
+inline SHA256::~SHA256()
 {
 }
 
 inline SizedArray<byte> SHA256::get_hash(SizedArray<byte> adata)
 {
-	uint32 data_size = adata.size;
+	uint64 data_size = adata.size;
 	byte* data = adata._arr;
 
-	uint32  n;
+	uint64  n;
 
 	if (_context.curlen > sizeof(_context.buf))	return SizedArray<byte>();
 
@@ -148,7 +148,7 @@ inline SizedArray<byte> SHA256::get_hash(SizedArray<byte> adata)
 	_context.length += _context.curlen * 8;
 
 	// Append the '1' bit
-	_context.buf[_context.curlen++] = (byte)0x80;
+	_context.buf[_context.curlen++] = CAST(byte,0x80);
 
 	// if the length is currently above 56 bytes we append zeros
 	// then compress.  Then we can fall back to padding zeros and length
@@ -156,7 +156,7 @@ inline SizedArray<byte> SHA256::get_hash(SizedArray<byte> adata)
 	if (_context.curlen > 56)
 	{
 		while (_context.curlen < 64)
-			_context.buf[_context.curlen++] = (byte)0;
+			_context.buf[_context.curlen++] = CAST(byte,0);
 
 		transform_function(_context.buf);
 		_context.curlen = 0;
@@ -164,7 +164,7 @@ inline SizedArray<byte> SHA256::get_hash(SizedArray<byte> adata)
 
 	// Pad up to 56 bytes of zeroes
 	while (_context.curlen < 56)
-		_context.buf[_context.curlen++] = (byte)0;
+		_context.buf[_context.curlen++] = CAST(byte,0);
 
 
 	// Store length

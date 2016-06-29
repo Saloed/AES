@@ -6,7 +6,8 @@
 class AES
 {
 public:
-	AES(std::ostream* err) {
+	explicit AES(std::ostream* err) : _mode()
+	{
 		_err = err;
 	}
 	~AES() {}
@@ -47,7 +48,7 @@ private:
 };
 
 
-int AES::init(MODE mode, OPERATION op, const byte * key, KEY key_len, const byte * init_vector)
+inline int AES::init(MODE mode, OPERATION op, const byte * key, KEY key_len, const byte * init_vector)
 {
 	_op = op;
 	_mode = mode;
@@ -305,7 +306,7 @@ inline int AES::encrypt_data(const byte *input, int input_byte_len, byte *out_bu
 	int i, block_amount, pad_len;
 	byte block[16], *iv;
 
-	if ((input == 0) || (input_byte_len <= 0)) return 0;
+	if ((input == nullptr) || (input_byte_len <= 0)) return 0;
 
 
 	block_amount = input_byte_len / 16;
@@ -365,12 +366,12 @@ inline int AES::encrypt_data(const byte *input, int input_byte_len, byte *out_bu
 			block[i] = input[i] ^ iv[i];
 		}
 		for (i = 16 - pad_len; i < 16; i++) {
-			block[i] = (byte)pad_len ^ iv[i];
+			block[i] = static_cast<byte>(pad_len) ^ iv[i];
 		}
 		encrypt(block, out_buffer);
 	} break;
 
-	default:return -1; break;
+	default:return -1;
 	}
 
 	return 16 * (block_amount + 1);
@@ -438,7 +439,6 @@ inline int AES::decrypt_data(const byte *input, int input_byte_len, byte *out_bu
 
 	default:
 		return -1;
-		break;
 	}
 
 	return (16 * block_amount) - padLen;

@@ -12,7 +12,7 @@
 #define MAX_IV_SIZE     (16)
 
 #define CAST32(x) ((uint32*)(x)) 
-
+#define CAST(type,x) (static_cast<type>(x))
 
 
 enum OPERATION {

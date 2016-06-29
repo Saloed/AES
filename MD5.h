@@ -1,7 +1,6 @@
 #pragma once
 #include "defines.h"
 #include "SArray.h"
-#include <memory>
 
 #define MD5_HASH_SIZE ( 16 )
 
@@ -53,7 +52,7 @@ private:
 	byte _hash[MD5_HASH_SIZE];
 };
 
-MD5::MD5()
+inline MD5::MD5()
 {
 	_context.a = 0x67452301;
 	_context.b = 0xefcdab89;
@@ -64,21 +63,21 @@ MD5::MD5()
 	_context.high_bits = 0;
 }
 
-MD5::~MD5()
+inline MD5::~MD5()
 {
 }
 
 inline SizedArray<byte> MD5::get_hash(SizedArray<byte> adata)
 {
-	uint32 data_size = adata.size;
+	uint64 data_size = adata.size;
 	byte* data = adata._arr;
 
 	_context.low_bits = data_size & 0x1fffffff;
-	_context.high_bits = data_size >> 29;
+	_context.high_bits = uint32(data_size >> 29);
 
 	if (data_size >= 64)
 	{
-		byte* temp = transform_function(data, data_size & ~(uint64)0x3f);
+		byte* temp = transform_function(data, data_size & ~CAST(uint64,0x3f));
 		data_size &= 0x3f;
 		std::memcpy(_context.buffer, temp, data_size);
 	}
@@ -113,33 +112,33 @@ inline SizedArray<byte> MD5::get_hash(SizedArray<byte> adata)
 inline void MD5::hash_calc()
 {
 	_context.low_bits <<= 3;
-	_context.buffer[56] = (byte)(_context.low_bits);
-	_context.buffer[57] = (byte)(_context.low_bits >> 8);
-	_context.buffer[58] = (byte)(_context.low_bits >> 16);
-	_context.buffer[59] = (byte)(_context.low_bits >> 24);
-	_context.buffer[60] = (byte)(_context.high_bits);
-	_context.buffer[61] = (byte)(_context.high_bits >> 8);
-	_context.buffer[62] = (byte)(_context.high_bits >> 16);
-	_context.buffer[63] = (byte)(_context.high_bits >> 24);
+	_context.buffer[56] = CAST(byte, _context.low_bits);
+	_context.buffer[57] = CAST(byte, _context.low_bits >> 8);
+	_context.buffer[58] = CAST(byte, _context.low_bits >> 16);
+	_context.buffer[59] = CAST(byte,_context.low_bits >> 24);
+	_context.buffer[60] = CAST(byte,_context.high_bits);
+	_context.buffer[61] = CAST(byte,_context.high_bits >> 8);
+	_context.buffer[62] = CAST(byte,_context.high_bits >> 16);
+	_context.buffer[63] = CAST(byte,_context.high_bits >> 24);
 
 	transform_function(_context.buffer, 64);
 
-	_hash[0] = (byte)(_context.a);
-	_hash[1] = (byte)(_context.a >> 8);
-	_hash[2] = (byte)(_context.a >> 16);
-	_hash[3] = (byte)(_context.a >> 24);
-	_hash[4] = (byte)(_context.b);
-	_hash[5] = (byte)(_context.b >> 8);
-	_hash[6] = (byte)(_context.b >> 16);
-	_hash[7] = (byte)(_context.b >> 24);
-	_hash[8] = (byte)(_context.c);
-	_hash[9] = (byte)(_context.c >> 8);
-	_hash[10] = (byte)(_context.c >> 16);
-	_hash[11] = (byte)(_context.c >> 24);
-	_hash[12] = (byte)(_context.d);
-	_hash[13] = (byte)(_context.d >> 8);
-	_hash[14] = (byte)(_context.d >> 16);
-	_hash[15] = (byte)(_context.d >> 24);
+	_hash[0] = CAST(byte,_context.a);
+	_hash[1] = CAST(byte,_context.a >> 8);
+	_hash[2] = CAST(byte,_context.a >> 16);
+	_hash[3] = CAST(byte,_context.a >> 24);
+	_hash[4] = CAST(byte,_context.b);
+	_hash[5] = CAST(byte,_context.b >> 8);
+	_hash[6] = CAST(byte,_context.b >> 16);
+	_hash[7] = CAST(byte,_context.b >> 24);
+	_hash[8] = CAST(byte,_context.c);
+	_hash[9] = CAST(byte,_context.c >> 8);
+	_hash[10] = CAST(byte,_context.c >> 16);
+	_hash[11] = CAST(byte,_context.c >> 24);
+	_hash[12] = CAST(byte,_context.d);
+	_hash[13] = CAST(byte,_context.d >> 8);
+	_hash[14] = CAST(byte,_context.d >> 16);
+	_hash[15] = CAST(byte,_context.d >> 24);
 }
 
 inline byte * MD5::transform_function(byte * data, uint64 data_size)
