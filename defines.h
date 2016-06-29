@@ -15,22 +15,23 @@
 #define CAST(type,x) (static_cast<type>(x))
 
 
-enum OPERATION {
+enum OPERATION
+{
 	ENCRYPT,
 	DECRYPT,
 	NONE
 };
 
-enum MODE {
+enum MODE
+{
 	ECB,
 	CBC
 };
 
-enum KEY {
+enum KEY
+{
 	K16B = 16,
 	K24B = 24,
 	K32B = 32
 };
-
-
 

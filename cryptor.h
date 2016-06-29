@@ -7,18 +7,18 @@
 
 class Cryptor
 {
-
 public:
 
 	//stream - for writing errors
 	Cryptor(char* input_filename, char* output_filename,
-		OPERATION op, SizedArray<byte> &key, KEY key_type, MODE mode, SizedArray<byte> &init_vector,
-		std::ostream &stream) :
+	        OPERATION op, SizedArray<byte>& key, KEY key_type, MODE mode, SizedArray<byte>& init_vector,
+	        std::ostream& stream) :
 		_in_fname(input_filename), _out_fname(output_filename),
 		_key(key), _init_vector(init_vector), _key_type(key_type), _op(op), _mode(mode)
 	{
 		_err = &stream;
 	}
+
 	~Cryptor();
 
 	//check input files 
@@ -59,26 +59,38 @@ inline int Cryptor::init()
 #ifdef _DEBUG
 	std::cerr << "input filename | " << _in_fname << "\nout filename | " << _out_fname << std::endl;
 #endif
-	if (_in_fname == NULL) { *_err << "File name not specified" << std::endl; return -1; }
+	if (_in_fname == NULL)
+	{
+		*_err << "File name not specified" << std::endl;
+		return -1;
+	}
 	_in_file = fopen(_in_fname, "rb+");
-	if (_in_file == NULL) { *_err << "Can't open file " << _in_fname << std::endl; return -4; }
+	if (_in_file == NULL)
+	{
+		*_err << "Can't open file " << _in_fname << std::endl;
+		return -4;
+	}
 #ifdef _DEBUG
 	std::cerr << "input file succesfuly opened" << std::endl;
 #endif
-	if (_out_fname == NULL) {
+	if (_out_fname == NULL)
+	{
 		uint64 in_size = strlen(_in_fname);
-		if (_op == ENCRYPT) {
+		if (_op == ENCRYPT)
+		{
 			_out_fname = new char[in_size + 6];
 			strcpy(_out_fname, _in_fname);
 			strcat(_out_fname, ".crypt");
 		}
-		else {
+		else
+		{
 			_out_fname = new char[in_size + 7];
 			strcpy(_out_fname, _in_fname);
 			strcat(_out_fname, ".dcrypt");
 		}
 
-		if (!strcmp(_in_fname, _out_fname)) {
+		if (!strcmp(_in_fname, _out_fname))
+		{
 			_out_fname = new char[in_size + 5];
 			strcpy(_out_fname, _in_fname);
 			strcat(_out_fname, ".copy");
@@ -86,16 +98,22 @@ inline int Cryptor::init()
 	}
 
 	_out_file = fopen(_out_fname, "wb+");
-	if (_out_file == NULL) { *_err << "Can't open file " << _out_fname << std::endl; return -5; }
+	if (_out_file == NULL)
+	{
+		*_err << "Can't open file " << _out_fname << std::endl;
+		return -5;
+	}
 
-	if (_init_vector.isEmpty()) {
+	if (_init_vector.isEmpty())
+	{
 		//_init_vector.set(new byte[MAX_IV_SIZE], MAX_IV_SIZE);
 		_init_vector = SizedArray<byte>(new byte[MAX_IV_SIZE], MAX_IV_SIZE);
 		for (uint32 i = 0; i < MAX_IV_SIZE; i++)
 			_init_vector[i] = 0;
 	}
 
-	if (_mode == CBC) {
+	if (_mode == CBC)
+	{
 		MD5 hasher;
 		_init_vector = hasher.get_hash(_init_vector);
 
@@ -108,7 +126,8 @@ inline int Cryptor::init()
 
 	}
 
-	if (_key_type == K16B) {
+	if (_key_type == K16B)
+	{
 		MD5 hasher;
 		_key = hasher.get_hash(_key);
 
@@ -118,9 +137,11 @@ inline int Cryptor::init()
 			*_err << std::hex << static_cast<int>(_key[i]);
 		*_err << '\n';
 #endif // _DEBUG
+
 	}
 
-	if (_key_type == K32B) {
+	if (_key_type == K32B)
+	{
 		SHA256 hasher;
 		_key = hasher.get_hash(_key);
 
@@ -130,6 +151,7 @@ inline int Cryptor::init()
 			*_err << std::hex << static_cast<int>(_key[i]);
 		*_err << '\n';
 #endif // _DEBUG
+
 	}
 
 	core = new AES(_err);
@@ -141,7 +163,8 @@ inline int Cryptor::init()
 
 inline int Cryptor::process() const
 {
-	if (core == NULL) {
+	if (core == NULL)
+	{
 		*_err << "core not initialized\n";
 		return 4;
 	}
@@ -151,15 +174,15 @@ inline int Cryptor::process() const
 	fstat(f, &info);
 	int size = info.st_size;
 
-	
 
 #ifdef _DEBUG
 	*_err << "file size " << size << '\n';
 #endif // DEBUG
 
 
+
 	byte* input = new byte[size];
-	byte *out = new  byte[size + 16];
+	byte* out = new byte[size + 16];
 
 	uint64 read_bytes = fread(input, sizeof(byte), size, _in_file);
 
@@ -167,6 +190,8 @@ inline int Cryptor::process() const
 	*_err << "bytes read: | " << read_bytes << '\n';
 	*_err << "check: | " << input << '\n';
 #endif // DEBUG
+
+
 
 	int out_size;
 	if (_op == ENCRYPT)
@@ -180,5 +205,8 @@ inline int Cryptor::process() const
 	*_err << "succes write to file | size " << out_size << " | write | " << write_bytes << '\n';
 #endif // DEBUG
 
+
+
 	return 0;
 }
+

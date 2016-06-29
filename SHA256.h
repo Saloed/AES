@@ -9,10 +9,10 @@
 
 struct SHAContext
 {
-	uint64    length;
-	uint32    state[8];
-	uint64    curlen;
-	byte      buf[BLOCK_SIZE];
+	uint64 length;
+	uint32 state[8];
+	uint64 curlen;
+	byte buf[BLOCK_SIZE];
 };
 
 
@@ -37,7 +37,6 @@ struct SHAContext
      (y)[6] = (byte)(((x)>>8)&255); (y)[7] = (byte)((x)&255); }
 
 
-
 // Various logical functions
 #define Ch( x, y, z )     (z ^ (x & (y ^ z)))
 #define Maj( x, y, z )    (((x | y) & z) | (x & y))
@@ -53,7 +52,6 @@ struct SHAContext
      t1 = Sigma0(a) + Maj(a, b, c);                    \
      d += t0;                                          \
      h  = t0 + t1;
-
 
 
 // The K array
@@ -72,7 +70,6 @@ static const uint32 K[BLOCK_SIZE] = {
 	0x682e6ff3UL, 0x748f82eeUL, 0x78a5636fUL, 0x84c87814UL, 0x8cc70208UL,
 	0x90befffaUL, 0xa4506cebUL, 0xbef9a3f7UL, 0xc67178f2UL
 };
-
 
 
 class SHA256
@@ -114,9 +111,9 @@ inline SizedArray<byte> SHA256::get_hash(SizedArray<byte> adata)
 	uint64 data_size = adata.size;
 	byte* data = adata._arr;
 
-	uint64  n;
+	uint64 n;
 
-	if (_context.curlen > sizeof(_context.buf))	return SizedArray<byte>();
+	if (_context.curlen > sizeof(_context.buf)) return SizedArray<byte>();
 
 	while (data_size > 0)
 	{
@@ -173,19 +170,19 @@ inline SizedArray<byte> SHA256::get_hash(SizedArray<byte> adata)
 
 	// Copy output
 	for (int i = 0; i < 8; i++)
-		STORE32H(_context.state[i], hash._arr + (4 * i));
+	STORE32H(_context.state[i], hash._arr + (4 * i));
 
 	return hash;
 }
 
-inline void SHA256::transform_function(byte * data)
+inline void SHA256::transform_function(byte* data)
 {
-	uint32    S[8];
-	uint32    W[64];
-	uint32    t0;
-	uint32    t1;
-	uint32    t;
-	int       i;
+	uint32 S[8];
+	uint32 W[64];
+	uint32 t0;
+	uint32 t1;
+	uint32 t;
+	int i;
 
 	// Copy state into S
 	for (i = 0; i < 8; i++)
@@ -194,7 +191,7 @@ inline void SHA256::transform_function(byte * data)
 
 	// Copy the state into 512-bits into W[0..15]
 	for (i = 0; i < 16; i++)
-		LOAD32H(W[i], data + (4 * i));
+	LOAD32H(W[i], data + (4 * i));
 
 
 	// Fill W[16..63]
@@ -220,5 +217,5 @@ inline void SHA256::transform_function(byte * data)
 	// Feedback
 	for (i = 0; i < 8; i++)
 		_context.state[i] = _context.state[i] + S[i];
-
 }
+

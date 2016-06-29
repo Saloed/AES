@@ -49,21 +49,21 @@ int opterr = 1;
 int optopt = '?';
 
 
-static char** prev_argv = NULL;        /* Keep a copy of argv and argc to */
-static int prev_argc = 0;              /*    tell if getopt params change */
-static int argv_index = 0;             /* Option we're checking */
-static int argv_index2 = 0;            /* Option argument we're checking */
-static int opt_offset = 0;             /* Index into compounded "-option" */
-static int dashdash = 0;               /* True if "--" option reached */
-static int nonopt = 0;                 /* How many nonopts we've found */
+static char** prev_argv = NULL; /* Keep a copy of argv and argc to */
+static int prev_argc = 0; /*    tell if getopt params change */
+static int argv_index = 0; /* Option we're checking */
+static int argv_index2 = 0; /* Option argument we're checking */
+static int opt_offset = 0; /* Index into compounded "-option" */
+static int dashdash = 0; /* True if "--" option reached */
+static int nonopt = 0; /* How many nonopts we've found */
 
 static void increment_index()
 {
 	/* Move onto the next option */
-	if(argv_index < argv_index2)
+	if (argv_index < argv_index2)
 	{
-		while(prev_argv[++argv_index] && prev_argv[argv_index][0] != '-'
-				&& argv_index < argv_index2+1);
+		while (prev_argv[++argv_index] && prev_argv[argv_index][0] != '-'
+			&& argv_index < argv_index2 + 1);
 	}
 	else argv_index++;
 	opt_offset = 1;
@@ -77,15 +77,15 @@ static void increment_index()
 static int permute_argv_once()
 {
 	/* Movability check */
-	if(argv_index + nonopt >= prev_argc) return 1;
+	if (argv_index + nonopt >= prev_argc) return 1;
 	/* Move the current option to the end, bring the others to front */
 	else
 	{
 		char* tmp = prev_argv[argv_index];
 
 		/* Move the data */
-		memmove(&prev_argv[argv_index], &prev_argv[argv_index+1],
-				sizeof(char**) * (prev_argc - argv_index - 1));
+		memmove(&prev_argv[argv_index], &prev_argv[argv_index + 1],
+		        sizeof(char**) * (prev_argc - argv_index - 1));
 		prev_argv[prev_argc - 1] = tmp;
 
 		nonopt++;
@@ -99,7 +99,7 @@ int getopt(int argc, char** argv, char* optstr)
 	int c = 0;
 
 	/* If we have new argv, reinitialize */
-	if(prev_argv != argv || prev_argc != argc)
+	if (prev_argv != argv || prev_argc != argc)
 	{
 		/* Initialize variables */
 		prev_argv = argv;
@@ -112,35 +112,35 @@ int getopt(int argc, char** argv, char* optstr)
 	}
 
 	/* Jump point in case we want to ignore the current argv_index */
-	getopt_top:
+getopt_top:
 
 	/* Misc. initializations */
 	optarg = NULL;
 
 	/* Dash-dash check */
-	if(argv[argv_index] && !strcmp(argv[argv_index], "--"))
+	if (argv[argv_index] && !strcmp(argv[argv_index], "--"))
 	{
 		dashdash = 1;
 		increment_index();
 	}
 
 	/* If we're at the end of argv, that's it. */
-	if(argv[argv_index] == NULL)
+	if (argv[argv_index] == NULL)
 	{
 		c = -1;
 	}
 	/* Are we looking at a string? Single dash is also a string */
-	else if(dashdash || argv[argv_index][0] != '-' || !strcmp(argv[argv_index], "-"))
+	else if (dashdash || argv[argv_index][0] != '-' || !strcmp(argv[argv_index], "-"))
 	{
 		/* If we want a string... */
-		if(optstr[0] == '-')
+		if (optstr[0] == '-')
 		{
 			c = 1;
 			optarg = argv[argv_index];
 			increment_index();
 		}
 		/* If we really don't want it (we're in POSIX mode), we're done */
-		else if(optstr[0] == '+' || getenv("POSIXLY_CORRECT"))
+		else if (optstr[0] == '+' || getenv("POSIXLY_CORRECT"))
 		{
 			c = -1;
 
@@ -150,7 +150,7 @@ int getopt(int argc, char** argv, char* optstr)
 		/* If we mildly don't want it, then move it back */
 		else
 		{
-			if(!permute_argv_once()) goto getopt_top;
+			if (!permute_argv_once()) goto getopt_top;
 			else c = -1;
 		}
 	}
@@ -163,12 +163,12 @@ int getopt(int argc, char** argv, char* optstr)
 		c = argv[argv_index][opt_offset++];
 
 		/* Is the option in the optstr? */
-		if(optstr[0] == '-') opt_ptr = strchr(optstr+1, c);
+		if (optstr[0] == '-') opt_ptr = strchr(optstr + 1, c);
 		else opt_ptr = strchr(optstr, c);
 		/* Invalid argument */
-		if(!opt_ptr)
+		if (!opt_ptr)
 		{
-			if(opterr)
+			if (opterr)
 			{
 				fprintf(stderr, "%s: invalid option -- %c\n", argv[0], c);
 			}
@@ -180,24 +180,24 @@ int getopt(int argc, char** argv, char* optstr)
 			increment_index();
 		}
 		/* Option takes argument */
-		else if(opt_ptr[1] == ':')
+		else if (opt_ptr[1] == ':')
 		{
 			/* ie, -oARGUMENT, -xxxoARGUMENT, etc. */
-			if(argv[argv_index][opt_offset] != '\0')
+			if (argv[argv_index][opt_offset] != '\0')
 			{
 				optarg = &argv[argv_index][opt_offset];
 				increment_index();
 			}
 			/* ie, -o ARGUMENT (only if it's a required argument) */
-			else if(opt_ptr[2] != ':')
+			else if (opt_ptr[2] != ':')
 			{
 				/* One of those "you're not expected to understand this" moment */
-				if(argv_index2 < argv_index) argv_index2 = argv_index;
-				while(argv[++argv_index2] && argv[argv_index2][0] == '-');
+				if (argv_index2 < argv_index) argv_index2 = argv_index;
+				while (argv[++argv_index2] && argv[argv_index2][0] == '-');
 				optarg = argv[argv_index2];
 
 				/* Don't cross into the non-option argument list */
-				if(argv_index2 + nonopt >= prev_argc) optarg = NULL;
+				if (argv_index2 + nonopt >= prev_argc) optarg = NULL;
 
 				/* Move onto the next option */
 				increment_index();
@@ -209,15 +209,15 @@ int getopt(int argc, char** argv, char* optstr)
 			}
 
 			/* In case we got no argument for an option with required argument */
-			if(optarg == NULL && opt_ptr[2] != ':')
+			if (optarg == NULL && opt_ptr[2] != ':')
 			{
 				optopt = c;
 				c = '?';
 
-				if(opterr)
+				if (opterr)
 				{
-					fprintf(stderr,"%s: option requires an argument -- %c\n",
-							argv[0], optopt);
+					fprintf(stderr, "%s: option requires an argument -- %c\n",
+					              argv[0], optopt);
 				}
 			}
 		}
@@ -225,7 +225,7 @@ int getopt(int argc, char** argv, char* optstr)
 		else
 		{
 			/* Next argv_index */
-			if(argv[argv_index][opt_offset] == '\0')
+			if (argv[argv_index][opt_offset] == '\0')
 			{
 				increment_index();
 			}
@@ -233,7 +233,7 @@ int getopt(int argc, char** argv, char* optstr)
 	}
 
 	/* Calculate optind */
-	if(c == -1)
+	if (c == -1)
 	{
 		optind = argc - nonopt;
 	}
@@ -248,3 +248,4 @@ int getopt(int argc, char** argv, char* optstr)
 
 /* vim:ts=3
 */
+

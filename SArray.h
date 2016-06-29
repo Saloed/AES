@@ -1,27 +1,32 @@
 #pragma once
 #include "defines.h"
 
-template<typename T> class SizedArray
+template <typename T>
+class SizedArray
 {
 public:
 	T* _arr;
 	uint64 size;
 
-	SizedArray() {
+	SizedArray()
+	{
 		_arr = NULL;
 		size = 0;
 	}
 
-	SizedArray(T* arr, uint32 sz) {
+	SizedArray(T* arr, uint32 sz)
+	{
 		_arr = arr;
 		size = sz;
 	}
 
-	~SizedArray() {
+	~SizedArray()
+	{
 		if (!_arr) delete _arr;
 	}
 
-	bool isEmpty() {
+	bool isEmpty()
+	{
 		return (_arr == NULL) || (size == 0);
 	}
 
@@ -29,31 +34,38 @@ public:
 		return (byte*)_arr;
 	}*/
 
-	void set(T* arr, int sz) {
+	void set(T* arr, int sz)
+	{
 		_arr = arr;
 		size = sz;
 	}
 
-	SizedArray(const SizedArray& other) {
+	SizedArray(const SizedArray& other)
+	{
 		size = other.size;
 		_arr = new T[size];
 		std::memcpy(_arr, other._arr, size * sizeof(T));
 	}
 
-	SizedArray &operator=(const SizedArray &other) {
+	SizedArray& operator=(const SizedArray& other)
+	{
 		size = other.size;
 		_arr = new T[size];
-		std::memcpy (_arr, other._arr, size * sizeof(T));
+		std::memcpy(_arr, other._arr, size * sizeof(T));
 		return *this;
 	}
 
-	SizedArray &operator=(char* other) {
+	SizedArray& operator=(char* other)
+	{
 		size = strlen(other);
 		_arr = new T[size];
 		std::memcpy(_arr, other, size);
 		return *this;
 	}
-	T &operator[] (int i) {
+
+	T& operator[](int i)
+	{
 		return _arr[i];
 	}
 };
+

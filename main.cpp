@@ -6,7 +6,8 @@
 
 using namespace std;
 
-void help() {
+void help()
+{
 	cout << "This program encrypt/decrypt file\n"
 		<< "using AES with 128 bits key" << endl
 		<< "Usage: AES [OPTION] [INPUT]" << endl
@@ -20,8 +21,8 @@ void help() {
 		<< "\t-k keylen\tkey length specification [128/192/256]" << endl;
 }
 
-int main(int argc, char** argv) {
-
+int main(int argc, char** argv)
+{
 	char* input_filename = NULL;
 	char* output_filename = NULL;
 
@@ -33,19 +34,34 @@ int main(int argc, char** argv) {
 	MODE mode = ECB;
 
 	/* check arguments */
-	while (1) {
+	while (1)
+	{
 		int c = getopt(argc, argv, "-ho:e:d:m:i:k:");
 		if (c == -1) break;
 
-		switch (c) {
-
+		switch (c)
+		{
 		case 'e':
-			if (op == NONE) { op = ENCRYPT, key = optarg; }
-			else { cout << "Only one operation [-e,-d] possible during a single run" << endl; return -2; }
+			if (op == NONE)
+			{
+				op = ENCRYPT , key = optarg;
+			}
+			else
+			{
+				cout << "Only one operation [-e,-d] possible during a single run" << endl;
+				return -2;
+			}
 			break;
 		case 'd':
-			if (op == NONE) { op = DECRYPT, key = optarg; }
-			else { cout << "Only one operation [-e,-d] possible during a single run" << endl; return -3; }
+			if (op == NONE)
+			{
+				op = DECRYPT , key = optarg;
+			}
+			else
+			{
+				cout << "Only one operation [-e,-d] possible during a single run" << endl;
+				return -3;
+			}
 			break;
 
 		case 'm':
@@ -53,7 +69,11 @@ int main(int argc, char** argv) {
 			else if (optarg == "cbc" || optarg == "CBC")mode = CBC;
 			break;
 
-		case 'i': {init_vector = optarg; } break;
+		case 'i':
+			{
+				init_vector = optarg;
+			}
+			break;
 
 		case 'k':
 			if (!strcmp(optarg, "128"))key_type = K16B;
@@ -61,23 +81,36 @@ int main(int argc, char** argv) {
 			else if (!strcmp(optarg, "256"))key_type = K32B;
 			break;
 
-		case 'h': help(); return 0;
+		case 'h': help();
+			return 0;
 
-		case 'o': output_filename = optarg;  break;
-		case 1: input_filename = optarg;  break;
-
+		case 'o': output_filename = optarg;
+			break;
+		case 1: input_filename = optarg;
+			break;
 		}
 
 
 #ifdef _DEBUG
 		std::cerr << "Option " << ((c == 1) ? 'I' : static_cast<char>(c)) << " with " << optarg << endl;
 #endif
-
 	}
 
-	if (input_filename==NULL) { cout << "No input file cpecified" << endl; return -1; }
-	if (op == NONE) { cout << "Operation not cpecified" << endl; return -1; }
-	if (key.isEmpty()) { cout << "Key not cpecified" << endl; return -1; }
+	if (input_filename == NULL)
+	{
+		cout << "No input file cpecified" << endl;
+		return -1;
+	}
+	if (op == NONE)
+	{
+		cout << "Operation not cpecified" << endl;
+		return -1;
+	}
+	if (key.isEmpty())
+	{
+		cout << "Key not cpecified" << endl;
+		return -1;
+	}
 
 #ifdef _DEBUG
 	std::cerr << "input data " << input_filename << "\t" << op << "\t" << key._arr << "\t" << endl;
@@ -99,5 +132,8 @@ int main(int argc, char** argv) {
 	std::cerr << "end session" << '\n';
 #endif // DEBUG
 
+
+
 	return 0;
 }
+
