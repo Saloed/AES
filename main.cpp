@@ -18,6 +18,7 @@ void help()
 		<< "\t-d key\t\tdecrypt file using key" << endl
 		<< "\t-m mode\t\tencryption mode [ECB/CBC]" << endl
 		<< "\t-i IV\t\tCBC initial vector" << endl
+		<< "\t-r rounds\trepeats of AES encrypt/decrypt" << endl
 		<< "\t-k keylen\tkey length specification [128/192/256]" << endl;
 }
 
@@ -33,10 +34,12 @@ int main(int argc, char** argv)
 	OPERATION op = NONE;
 	MODE mode = ECB;
 
+	uint32 rounds = 1;
+
 	/* check arguments */
 	while (1)
 	{
-		int c = getopt(argc, argv, "-ho:e:d:m:i:k:");
+		int c = getopt(argc, argv, "-ho:e:d:m:i:k:r:");
 		if (c == -1) break;
 
 		switch (c)
@@ -44,7 +47,7 @@ int main(int argc, char** argv)
 		case 'e':
 			if (op == NONE)
 			{
-				op = ENCRYPT , key = optarg;
+				op = ENCRYPT, key = optarg;
 			}
 			else
 			{
@@ -55,7 +58,7 @@ int main(int argc, char** argv)
 		case 'd':
 			if (op == NONE)
 			{
-				op = DECRYPT , key = optarg;
+				op = DECRYPT, key = optarg;
 			}
 			else
 			{
@@ -70,10 +73,10 @@ int main(int argc, char** argv)
 			break;
 
 		case 'i':
-			{
-				init_vector = optarg;
-			}
-			break;
+		{
+			init_vector = optarg;
+		}
+		break;
 
 		case 'k':
 			if (!strcmp(optarg, "128"))key_type = K16B;
@@ -83,6 +86,11 @@ int main(int argc, char** argv)
 
 		case 'h': help();
 			return 0;
+
+		case'r':
+			rounds = abs(atoi(optarg));
+			if (!rounds) rounds = 1;
+			break;
 
 		case 'o': output_filename = optarg;
 			break;
@@ -117,7 +125,7 @@ int main(int argc, char** argv)
 #endif
 
 	/*initialize cryptor*/
-	Cryptor crypt(input_filename, output_filename, op, key, key_type, mode, init_vector, std::cerr);
+	Cryptor crypt(input_filename, output_filename, op, key, key_type, mode,rounds, init_vector, std::cerr);
 	int err = crypt.init();
 	if (err) return err;
 

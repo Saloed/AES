@@ -12,10 +12,10 @@ public:
 
 	//stream - for writing errors
 	Cryptor(char* input_filename, char* output_filename,
-	        OPERATION op, SizedArray<byte>& key, KEY key_type, MODE mode, SizedArray<byte>& init_vector,
+	        OPERATION op, SizedArray<byte>& key, KEY key_type, MODE mode, uint32 rounds, SizedArray<byte>& init_vector,
 	        std::ostream& stream) :
-		_in_fname(input_filename), _out_fname(output_filename),
-		_key(key), _init_vector(init_vector), _key_type(key_type), _op(op), _mode(mode), _in_file_size(0)
+		_in_fname(input_filename), _out_fname(output_filename), _in_file_size(0),
+		_key(key), _init_vector(init_vector), _key_type(key_type), _op(op), _mode(mode), _rounds(rounds)
 	{
 		_err = &stream;
 	}
@@ -39,6 +39,7 @@ private:
 	KEY _key_type;
 	OPERATION _op;
 	MODE _mode;
+	uint32 _rounds;
 
 	std::ifstream _in_file;
 	std::ofstream _out_file;
@@ -67,7 +68,7 @@ inline Cryptor::~Cryptor()
 inline int Cryptor::init()
 {
 #ifdef _DEBUG
-	std::cerr << "input filename | " << _in_fname << "\nout filename | " << ((_out_fname)?_out_fname:"no_name") << std::endl;
+	std::cerr << "input filename | " << _in_fname << "\nout filename | " << ((_out_fname) ? _out_fname : "no_name") << std::endl;
 #endif
 	if (_in_fname == NULL)
 	{
@@ -227,16 +228,16 @@ inline int Cryptor::process()
 		uint32 remainder = size % MEGABYTE;
 
 #ifdef _DEBUG
-		*_err << "size > MEGA | " << size << std::endl<<"full blocks | "<<full_blocks<<"  remaind | "<<remainder<< std::endl;
+		*_err << "size > MEGA | " << size << std::endl << "full blocks | " << full_blocks << "  remaind | " << remainder << std::endl;
 #endif
 
 		for (uint32 i = 0; i < full_blocks; i++)
 		{
 			int err = process_block(MEGABYTE);
-			if (err<=0)return err;
+			if (err <= 0)return err;
 		}
 		int err = process_block(remainder);
-		if (err<=0)return err;
+		if (err <= 0)return err;
 
 	}
 #else
@@ -250,7 +251,7 @@ inline int Cryptor::process()
 	return 0;
 }
 
-inline uint32 Cryptor::process_block(unsigned size)
+inline uint32 Cryptor::process_block(uint32 size)
 {
 	byte* input = new byte[size];
 	byte* out = new byte[size + 16];
@@ -268,26 +269,79 @@ inline uint32 Cryptor::process_block(unsigned size)
 	}
 #endif // DEBUG
 
-
 	if (!_in_file)
 	{
 		*_err << "error occured durind reading\n";
 		return -1;
 	}
-
 	int out_size;
-	if (_op == ENCRYPT)
-		out_size = core->encrypt_data(input, size, out);
-	else
-		out_size = core->decrypt_data(input, size, out);
+	if (_rounds == 1)
+	{
+		if (_op == ENCRYPT)
+			out_size = core->encrypt_data(input, size, out);
+		else
+			out_size = core->decrypt_data(input, size, out);
 
-	_out_file.write(reinterpret_cast<char*>(out), out_size);
-	//_out_file.flush();
+		_out_file.write(reinterpret_cast<char*>(out), out_size);
+		//_out_file.flush();
 
 #ifdef _DEBUG
-	*_err << "succes write to file | size " << out_size << '\n';
+		*_err << "succes write to file | size " << out_size << '\n';
 #endif // DEBUG
 
+	}
+	else
+	{
+		uint32 rd = _rounds;
+		if (_op == ENCRYPT)
+		{
+			out_size = core->encrypt_data(input, size, out);
+			rd--;
+			byte* temp = new byte[out_size];
+			while (rd)
+			{
+				memcpy(temp, out, out_size);
+				out_size = core->encrypt_block(temp, out_size, out);
+
+#ifdef _DEBUG
+				*_err << "round  |  " << rd << '\n';
+#endif // DEBUG
+
+				rd--;
+			}
+			_out_file.write(reinterpret_cast<char*>(out), out_size);
+#ifdef _DEBUG
+			*_err << "succes write to file | size " << out_size << '\n';
+#endif // DEBUG
+			delete[] temp;
+		}
+		else
+		{
+			byte* temp = new byte[size];
+			memcpy(temp, input, size);
+			out_size = size;
+			while (rd > 1)
+			{
+				out_size = core->decrypt_block(temp, size, out);
+				memcpy(temp, out, out_size);
+				rd--;
+#ifdef _DEBUG
+				*_err << "round  |  " << rd << '\n';
+#endif // DEBUG
+#ifdef _DEBUG
+				if (out_size != size)
+					*_err << "id decrypt, size!=outsize " << size << " " << out_size << " " << rd
+						<< std::endl;
+#endif
+			}
+			out_size = core->decrypt_data(temp, out_size, out);
+			_out_file.write(reinterpret_cast<char*>(out), out_size);
+#ifdef _DEBUG
+			*_err << "succes write to file | size " << out_size << '\n';
+#endif // DEBUG
+			delete[] temp;
+		}
+	}
 
 	if (!_out_file)
 	{

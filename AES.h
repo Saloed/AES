@@ -506,7 +506,7 @@ inline int AES::encrypt_block(const byte *input, int input_len, byte *out_buffer
 	int i, block_amount;
 	byte block[16];
 
-	if (input == 0 || input_len <= 0) return 0;
+	if (input == nullptr || input_len <= 0) return 0;
 
 	block_amount = input_len / 16;
 
@@ -537,7 +537,7 @@ inline int AES::encrypt_block(const byte *input, int input_len, byte *out_buffer
 			input += 16;
 		}
 		break;
-	default:return -1; break;
+	default:return -1;
 	}
 
 	return 16 * block_amount;
@@ -547,7 +547,7 @@ inline int AES::decrypt_block(const byte *input, int input_len, byte *out_buffer
 	int i, block_amount;
 	byte block[16], iv[4][4];
 
-	if ((input == 0) || (input_len <= 0)) return 0;
+	if ((input == nullptr) || (input_len <= 0)) return 0;
 
 	block_amount = input_len / 16;
 
@@ -590,7 +590,6 @@ inline int AES::decrypt_block(const byte *input, int input_len, byte *out_buffer
 
 	default:
 		return -1;
-		break;
 	}
 
 	return 16 * block_amount;

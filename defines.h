@@ -16,6 +16,8 @@ typedef unsigned char	   byte;
 
 #define MEGABYTE (1<<20)
 
+#define STRICT_BLOCK
+
 enum OPERATION
 {
 	ENCRYPT,
