@@ -13,6 +13,8 @@ typedef unsigned char	   byte;
 
 #define CAST32(x) ((uint32*)(x)) 
 #define CAST(type,x) (static_cast<type>(x))
+#define SDEL(x)  {delete x; x = NULL;}
+#define SADEL(x) {delete[] x; x = NULL;}
 
 #define MEGABYTE (1<<20)
 

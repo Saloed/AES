@@ -22,7 +22,7 @@ public:
 
 	~SizedArray()
 	{
-		if (!_arr) delete _arr;
+		SADEL(_arr)
 	}
 
 	bool isEmpty()
@@ -49,6 +49,7 @@ public:
 
 	SizedArray& operator=(const SizedArray& other)
 	{
+		SADEL(_arr)
 		size = other.size;
 		_arr = new T[size];
 		std::memcpy(_arr, other._arr, size * sizeof(T));

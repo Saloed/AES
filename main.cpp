@@ -4,6 +4,11 @@
 #include "SArray.h"
 #include <iostream>
 
+
+#ifdef _DEBUG
+#include <vld.h>
+#endif
+
 using namespace std;
 
 void help()
@@ -139,8 +144,6 @@ int main(int argc, char** argv)
 #ifdef _DEBUG
 	std::cerr << "end session" << '\n';
 #endif // DEBUG
-
-
 
 	return 0;
 }
