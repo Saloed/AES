@@ -4,6 +4,7 @@
 #include "MD5.h"
 #include "SHA256.h"
 #include "SArray.h"
+#include <fstream>
 
 class Cryptor
 {
@@ -14,7 +15,7 @@ public:
 	        OPERATION op, SizedArray<byte>& key, KEY key_type, MODE mode, SizedArray<byte>& init_vector,
 	        std::ostream& stream) :
 		_in_fname(input_filename), _out_fname(output_filename),
-		_key(key), _init_vector(init_vector), _key_type(key_type), _op(op), _mode(mode)
+		_key(key), _init_vector(init_vector), _key_type(key_type), _op(op), _mode(mode), _in_file_size(0)
 	{
 		_err = &stream;
 	}
@@ -24,7 +25,7 @@ public:
 	//check input files 
 	int init();
 
-	int process() const;
+	int process();
 
 private:
 	char* _in_fname;
@@ -36,8 +37,11 @@ private:
 	OPERATION _op;
 	MODE _mode;
 
-	FILE* _in_file = NULL;
-	FILE* _out_file = NULL;
+	std::ifstream _in_file;
+	std::ofstream _out_file;
+
+	uint64 _in_file_size;
+
 
 	std::ostream* _err;
 
@@ -50,7 +54,10 @@ inline Cryptor::~Cryptor()
 	/*if (_in_file)	fclose(_in_file);
 	if (_out_file)	fclose(_out_file);
 	*/
-	fcloseall();
+
+	if (_in_file.is_open())_in_file.close();
+	if (_out_file.is_open())_out_file.close();
+
 	if (core) delete core;
 }
 
@@ -64,8 +71,8 @@ inline int Cryptor::init()
 		*_err << "File name not specified" << std::endl;
 		return -1;
 	}
-	_in_file = fopen(_in_fname, "rb+");
-	if (_in_file == NULL)
+	_in_file.open(_in_fname, std::ios::in | std::ios::binary);
+	if (!_in_file.is_open())
 	{
 		*_err << "Can't open file " << _in_fname << std::endl;
 		return -4;
@@ -97,12 +104,27 @@ inline int Cryptor::init()
 		}
 	}
 
-	_out_file = fopen(_out_fname, "wb+");
-	if (_out_file == NULL)
+	_out_file.open(_out_fname, std::ios::out | std::ios::binary);
+	if (!_out_file.is_open())
 	{
 		*_err << "Can't open file " << _out_fname << std::endl;
 		return -5;
 	}
+
+	_in_file.seekg(0, _in_file.end);
+	_in_file_size = _in_file.tellg();
+	_in_file.seekg(0, _in_file.beg);
+
+	if (!_in_file_size)
+	{
+		*_err << "Input file is empty" << std::endl;
+		return -1;
+	}
+
+#ifdef _DEBUG
+	*_err << "file size " << _in_file_size << '\n';
+#endif // DEBUG
+
 
 	if (_init_vector.isEmpty())
 	{
@@ -140,6 +162,18 @@ inline int Cryptor::init()
 
 	}
 
+	if(_key_type==K24B)
+	{
+		SHA256 hasher;
+		_key = hasher.get_hash(_key);
+#ifdef _DEBUG
+		*_err << "key sha256 hash (cut) |  " << K24B << "  |  ";
+		for (uint32 i = 0; i < K24B; ++i)
+			*_err << std::hex << static_cast<int>(_key[i]);
+		*_err << '\n';
+#endif // _DEBUG
+	}
+
 	if (_key_type == K32B)
 	{
 		SHA256 hasher;
@@ -154,6 +188,8 @@ inline int Cryptor::init()
 
 	}
 
+	*_err << std::dec;
+
 	core = new AES(_err);
 
 	core->init(_mode, _op, _key._arr, _key_type, _init_vector._arr);
@@ -161,7 +197,7 @@ inline int Cryptor::init()
 	return 0;
 }
 
-inline int Cryptor::process() const
+inline int Cryptor::process()
 {
 	if (core == NULL)
 	{
@@ -169,28 +205,24 @@ inline int Cryptor::process() const
 		return 4;
 	}
 
-	struct stat info;
-	int f = fileno(_in_file);
-	fstat(f, &info);
-	int size = info.st_size;
-
-
-#ifdef _DEBUG
-	*_err << "file size " << size << '\n';
-#endif // DEBUG
-
+	uint64 size = _in_file_size;
 
 
 	byte* input = new byte[size];
 	byte* out = new byte[size + 16];
 
-	uint64 read_bytes = fread(input, sizeof(byte), size, _in_file);
+	_in_file.read(reinterpret_cast<char*>(input), size);
 
 #ifdef _DEBUG
-	*_err << "bytes read: | " << read_bytes << '\n';
-	*_err << "check: | " << input << '\n';
+	if (_in_file)
+	{
+		*_err << "size   |  " << size << '\n';
+	}
+	else
+	{
+		*_err << "error occured durind reading\n";
+	}
 #endif // DEBUG
-
 
 
 	int out_size;
@@ -199,13 +231,16 @@ inline int Cryptor::process() const
 	else
 		out_size = core->decrypt_data(input, size, out);
 
-	uint64 write_bytes = fwrite(out, sizeof(byte), out_size, _out_file);
+	_out_file.write(reinterpret_cast<char*>(out), out_size);
+	_out_file.flush();
 
 #ifdef _DEBUG
-	*_err << "succes write to file | size " << out_size << " | write | " << write_bytes << '\n';
+	*_err << "succes write to file | size " << out_size << '\n';
 #endif // DEBUG
 
 
+	delete[] input;
+	delete[] out;
 
 	return 0;
 }
